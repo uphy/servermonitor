@@ -1,0 +1,17 @@
+server:
+  port: 8080
+  address: 0.0.0.0
+logging:
+    file: logs/servermonitor.log
+    level:
+        org.springframework.web: INFO
+        jp.uphy.servermonitor: ALL
+spring:
+  thymeleaf:
+    cache: false
+  datasource:
+    url: jdbc:h2:file:./eventdb
+    driverClassName: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
