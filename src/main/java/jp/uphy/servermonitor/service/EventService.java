@@ -42,4 +42,9 @@ public class EventService {
   public List<Event> findEvents(long from) {
     return this.eventRepository.findByTimeAfter(from);
   }
+
+  public void clear() {
+    this.eventRepository.deleteAll();
+  }
+
 }

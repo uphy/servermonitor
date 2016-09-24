@@ -14,7 +14,10 @@ package jp.uphy.servermonitor.web;
 
 import jp.uphy.servermonitor.domain.Event;
 import jp.uphy.servermonitor.service.EventService;
+import jp.uphy.servermonitor.web.websocket.EventHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,13 +30,15 @@ import java.util.List;
  * @author Yuhi Ishikura
  */
 @RestController
-@RequestMapping("/rest")
-public class ServerMonitorController {
+@RequestMapping("rest/events")
+public class EventController {
 
   @Autowired
   private EventService eventService;
+  @Autowired
+  private EventHandler eventHandler;
 
-  @RequestMapping(value = "/events", method = RequestMethod.GET)
+  @RequestMapping(method = RequestMethod.GET)
   public List<Event> events(@RequestParam(defaultValue = "0") long from) {
     if (from <= 0) {
       return this.eventService.findAllEvents();
@@ -41,4 +46,13 @@ public class ServerMonitorController {
     return this.eventService.findEvents(from);
   }
 
+  @RequestMapping(value = "clear", method = RequestMethod.GET)
+  public void clear() {
+    this.eventService.clear();
+  }
+
+  @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public void post(@RequestBody Event event) {
+    this.eventHandler.publish(event);
+  }
 }

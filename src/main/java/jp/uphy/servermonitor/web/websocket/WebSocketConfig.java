@@ -31,6 +31,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
   @Override
   public void registerWebSocketHandlers(final WebSocketHandlerRegistry webSocketHandlerRegistry) {
-    webSocketHandlerRegistry.addHandler(this.eventHandler, "/ws/events");
+    webSocketHandlerRegistry
+      .addHandler(this.eventHandler, "/ws/events")
+      .setAllowedOrigins("*");
   }
+
 }
