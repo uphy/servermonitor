@@ -2,15 +2,52 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Index</title>
+    <title>Server Monitor</title>
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js" th:src="'/webjars/jquery/2.1.3/jquery.min.js'"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" th:src="'/webjars/datatables/1.10.12/js/jquery.dataTables.min.js'"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" th:src="'/webjars/datatables/1.10.12/css/jquery.dataTables.min.js'"/>
     <script th:inline="javascript">
         /*<![CDATA[*/
+        var table;
+        $(document).ready(function () {
+            table = $('#eventTable').DataTable({
+                columns: [
+                    {data: 'time'},
+                    {data: 'message'}
+                ],
+                columnDefs: [
+                    {"width": "200px", "targets": 0},
+                ],
+                "order": [[0, "desc"]]
+            });
+        });
+
+        var formatDate = function (date, format) {
+            if (!format) format = 'YYYY/MM/DD hh:mm:ss.SSS';
+            format = format.replace(/YYYY/g, date.getFullYear());
+            format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2));
+            format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2));
+            format = format.replace(/hh/g, ('0' + date.getHours()).slice(-2));
+            format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2));
+            format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2));
+            if (format.match(/S/g)) {
+                var milliSeconds = ('00' + date.getMilliseconds()).slice(-3);
+                var length = format.match(/S/g).length;
+                for (var i = 0; i < length; i++) format = format.replace(/S/, milliSeconds.substring(i, i + 1));
+            }
+            return format;
+        };
+
         $(function () {
             var wsurl = /*[[${wsurl}]]*/ "ws://localhost:8080/ws/events";
             var ws = new WebSocket(wsurl);
             var appendEvent = function (event) {
-                $("#result").append(event.message).append("<br>");
+                var time = new Date(event.time);
+                var timeString = formatDate(time);
+                table.row.add({
+                    time: timeString,
+                    message: event.message
+                }).draw();
                 window.localStorage.last = event.time;
             };
             ws.onopen = function () {
@@ -38,23 +75,19 @@
             ws.onerror = function (event) {
                 alert("接続に失敗しました。: " + JSON.stringify(event));
             };
-            $("#form").submit(function () {
-                var command = {
-                    name: "receive"
-                };
-                ws.send(JSON.stringify(command));
-                $("#message").val("")
-                return false;
-            });
         });
         /*]]>*/
     </script>
 </head>
 <body>
-<div id="result"></div>
-<form id="form" action="#">
-    <input type="text" id="message"/>
-    <input type="submit" value="送信"/>
-</form>
+<h1>Server Monitor</h1>
+<table id="eventTable">
+    <thead>
+    <tr>
+        <td>Time</td>
+        <td>Message</td>
+    </tr>
+    </thead>
+</table>
 </body>
 </html>

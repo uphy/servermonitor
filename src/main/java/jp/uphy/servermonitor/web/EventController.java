@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -41,7 +42,8 @@ public class EventController {
   @RequestMapping(method = RequestMethod.GET)
   public List<Event> events(@RequestParam(defaultValue = "0") long from) {
     if (from <= 0) {
-      return this.eventService.findAllEvents();
+      final long recent = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(3);
+      return this.eventService.findEvents(recent);
     }
     return this.eventService.findEvents(from);
   }

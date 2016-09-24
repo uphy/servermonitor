@@ -34,7 +34,7 @@ public class AccessCheck {
   public void postConstruct() {
     new Thread(() -> {
       while (true) {
-        eventHandler.publish(new Event(new Date().toString()));
+        // eventHandler.publish(new Event(new Date().toString()));
         try {
           Thread.sleep(5000);
         } catch (InterruptedException e) {
