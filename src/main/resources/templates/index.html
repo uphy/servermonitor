@@ -4,57 +4,123 @@
     <meta charset="UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Server Monitor</title>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js" th:src="'/webjars/jquery/2.1.3/jquery.min.js'"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" th:src="'/webjars/datatables/1.10.12/js/jquery.dataTables.min.js'"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js" th:src="'/webjars/jquery/2.1.3/jquery.min.js'"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" th:src="'/webjars/datatables/1.10.12/js/jquery.dataTables.min.js'"/>
+    <script type="text/javascript" src="/js/Notification.min.js"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" th:src="'/webjars/datatables/1.10.12/css/jquery.dataTables.min.js'"/>
+    <style>
+        table.dataTable .INFO {
+            background-color: hsl(200, 100%, 95%);
+        }
+
+        table.dataTable .WARN {
+            background-color: hsl(40, 100%, 95%);
+        }
+
+        table.dataTable .ERROR {
+            background-color: hsl(0, 100%, 95%);
+        }
+    </style>
     <script th:inline="javascript">
         /*<![CDATA[*/
         var init = /*[[ ${param.init != null} ? true : false]]*/ false;
-        if(init){
+        if (init) {
             localStorage.clear();
         }
 
-        var table;
+        var eventNotifier = (function () {
+            var notificationAllowed = false;
+            if (Notification) {
+                switch (Notification.permission) {
+                    case "default":
+                        Notification.requestPermission(function (permission) {
+                            if (permission === "granted") {
+                                notificationAllowed = true;
+                            }
+                        });
+                        break;
+                    case "granted":
+                        notificationAllowed = true;
+                        break;
+                    case "denied":
+                        break;
+                }
+            }
+            return {
+                notify: function (event) {
+                    var message = event.message;
+                    if ($("#showNotification").prop('checked') && notificationAllowed) {
+                        new Notification("Server Monitor", {body: message});
+                    }
+                    if ($("#showDialog").prop('checked')) {
+                        window.alert(message);
+                    }
+                }
+            }
+        }());
+
         $(document).ready(function () {
-            table = $('#eventTable').DataTable({
+            /* 通知・ダイアログチェックボックス初期化 */
+            function initCheckbox(id, defaultChecked) {
+                var rawChecked = localStorage.getItem(id + "_checked")
+                var checked = rawChecked == null ? defaultChecked : rawChecked === "true";
+                $("#" + id).prop("checked", checked);
+                $("#" + id).change(function () {
+                    localStorage.setItem(id + "_checked", this.checked);
+                });
+            }
+
+            initCheckbox("showNotification", true);
+            initCheckbox("showDialog", false);
+
+            /* DataTables表示設定 */
+            var table = $('#eventTable').DataTable({
                 columns: [
                     {data: 'time'},
+                    {data: 'level'},
                     {data: 'message'}
                 ],
                 columnDefs: [
                     {"width": "200px", "targets": 0},
+                    {"width": "100px", "targets": 1},
                 ],
-                "order": [[0, "desc"]]
+                "order": [[0, "desc"]],
+                "createdRow": function (row, data, dataIndex) {
+                    $(row).addClass(data['level']);
+                }
             });
-        });
 
-        var formatDate = function (date, format) {
-            if (!format) format = 'YYYY/MM/DD hh:mm:ss.SSS';
-            format = format.replace(/YYYY/g, date.getFullYear());
-            format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2));
-            format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2));
-            format = format.replace(/hh/g, ('0' + date.getHours()).slice(-2));
-            format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2));
-            format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2));
-            if (format.match(/S/g)) {
-                var milliSeconds = ('00' + date.getMilliseconds()).slice(-3);
-                var length = format.match(/S/g).length;
-                for (var i = 0; i < length; i++) format = format.replace(/S/, milliSeconds.substring(i, i + 1));
-            }
-            return format;
-        };
-
-        $(function () {
+            /* WebSocket通信設定 */
             var wsurl = /*[[${wsurl}]]*/ "ws://localhost:8080/ws/events";
             var ws = new WebSocket(wsurl);
-            var appendEvent = function (event) {
+            var lastEventTime = 0;
+            var formatDate = function (date, format) {
+                if (!format) format = 'YYYY/MM/DD hh:mm:ss.SSS';
+                format = format.replace(/YYYY/g, date.getFullYear());
+                format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2));
+                format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2));
+                format = format.replace(/hh/g, ('0' + date.getHours()).slice(-2));
+                format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2));
+                format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2));
+                if (format.match(/S/g)) {
+                    var milliSeconds = ('00' + date.getMilliseconds()).slice(-3);
+                    var length = format.match(/S/g).length;
+                    for (var i = 0; i < length; i++) format = format.replace(/S/, milliSeconds.substring(i, i + 1));
+                }
+                return format;
+            };
+            var appendEvent = function (event, isInit) {
                 var time = new Date(event.time);
                 var timeString = formatDate(time);
                 table.row.add({
                     time: timeString,
-                    message: event.message
+                    message: event.message,
+                    level: event.level
                 }).draw();
-                window.localStorage.last = event.time;
+                lastEventTime = event.time;
+                if (isInit == false) {
+                    eventNotifier.notify(event);
+                }
             };
             ws.onopen = function () {
                 var from = window.localStorage.getItem("last");
@@ -72,25 +138,36 @@
                 var obj = JSON.parse(message.data);
                 if (obj instanceof Array) {
                     for (var i in obj) {
-                        appendEvent(obj[i]);
+                        appendEvent(obj[i], true);
                     }
                 } else {
-                    appendEvent(obj);
+                    appendEvent(obj, false);
                 }
             };
             ws.onerror = function (event) {
-                alert("接続に失敗しました。: " + JSON.stringify(event));
+                alert("Failed to connect. : " + JSON.stringify(event));
             };
+
+            $("#markAsReadButton").click(function () {
+                table.clear().draw();
+                window.localStorage.last = lastEventTime;
+            });
         });
         /*]]>*/
     </script>
 </head>
 <body>
 <h1>Server Monitor</h1>
+<div>
+    <input id="showNotification" type="checkbox"/>Notification
+    <input id="showDialog" type="checkbox"/>Dialog
+    <input id="markAsReadButton" type="button" value="Mark As Read"/>
+</div>
 <table id="eventTable">
     <thead>
     <tr>
         <td>Time</td>
+        <td>Level</td>
         <td>Message</td>
     </tr>
     </thead>

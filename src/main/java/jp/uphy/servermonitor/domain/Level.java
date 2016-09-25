@@ -12,38 +12,13 @@
  */
 package jp.uphy.servermonitor.domain;
 
-import lombok.Data;
-
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-
-
 /**
  * @author Yuhi Ishikura
  */
-@Entity
-@Data
-public class Event {
+public enum Level {
 
-  @Id
-  @GeneratedValue
-  private long id;
-  private long time;
-  private String message;
-  @Enumerated(EnumType.STRING)
-  private Level level;
-
-  public Event() {
-
-  }
-
-  public Event(String message) {
-    this.time = System.currentTimeMillis();
-    this.message = message;
-    this.level = Level.INFO;
-  }
+  INFO,
+  WARN,
+  ERROR
 
 }
