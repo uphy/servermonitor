@@ -14,6 +14,7 @@ package jp.uphy.servermonitor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 
 /**
@@ -22,8 +23,31 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Application {
 
+  static final String RESTARTABLE_KEY = "restartable";
+  static final int RESTART_EXITCODE = 100;
+  private static ConfigurableApplicationContext applicationContext;
+
   public static void main(String[] args) throws Exception {
-    SpringApplication.run(Application.class, args);
+    applicationContext = SpringApplication.run(Application.class, args);
+  }
+
+  public static void exit() {
+    exit(0);
+  }
+
+  public static void restart() {
+    if (isRestartable() == false) {
+      throw new IllegalStateException("Not restartable.");
+    }
+    exit(RESTART_EXITCODE);
+  }
+
+  private static void exit(int exitCode) {
+    System.exit(exitCode);
+  }
+
+  public static boolean isRestartable() {
+    return System.getProperty(RESTARTABLE_KEY, null) != null;
   }
 
 }

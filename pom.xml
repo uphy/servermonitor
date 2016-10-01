@@ -30,6 +30,9 @@
                         <version>1.2.6.RELEASE</version>
                     </dependency>
                 </dependencies>
+                <configuration>
+                    <mainClass>jp.uphy.servermonitor.ApplicationLauncher</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
