@@ -12,9 +12,9 @@
  */
 package jp.uphy.servermonitor.service.plugin;
 
-import jp.uphy.servermonitor.service.plugin.api.Plugin;
-import jp.uphy.servermonitor.service.plugin.api.PluginContext;
-import jp.uphy.servermonitor.service.plugin.api.Scheduler;
+import jp.uphy.servermonitor.plugin.api.AbstractPlugin;
+import jp.uphy.servermonitor.plugin.api.PluginContext;
+import jp.uphy.servermonitor.plugin.api.Scheduler;
 
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Yuhi Ishikura
  */
-public class PluginA extends Plugin {
+public class PluginA extends AbstractPlugin {
 
   private Scheduler.ScheduleTaskHandler handler;
   private int i = 0;
@@ -30,7 +30,7 @@ public class PluginA extends Plugin {
   @Override
   public void initialize(final PluginContext pluginContext) {
     this.i = 0;
-    pluginContext.getSettings().setProperty("intervalInSeconds", 1000);
+    pluginContext.getSettings().setProperty("intervalInSeconds", 5000);
     pluginContext.getSettings().setProperty("message", "Hello");
   }
 
@@ -42,12 +42,11 @@ public class PluginA extends Plugin {
       if (message != null) {
         System.out.println(id + ":" + message);
       }
-    }, TimeUnit.SECONDS.toMillis(5));
+    }, pluginContext.getSettings().getPropertyLong("intervalInSeconds", TimeUnit.SECONDS.toMillis(5)));
   }
 
   @Override
   public void stop(final PluginContext value) {
-    super.stop(value);
     value.getState().setProperty("a", 100);
     handler.stop();
   }

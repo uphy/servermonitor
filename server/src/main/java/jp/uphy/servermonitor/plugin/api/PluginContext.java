@@ -10,23 +10,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.servermonitor.service.plugin.api;
+package jp.uphy.servermonitor.plugin.api;
+
+import java.nio.file.Paths;
+
 
 /**
  * @author Yuhi Ishikura
  */
 public class PluginContext {
 
-  private String id;
   private Scheduler scheduler;
   private WritableProperties state;
   private WritableProperties settings;
 
-  public PluginContext(final String id, final Scheduler scheduler, WritableProperties state, WritableProperties settings) {
-    this.id = id;
+  public PluginContext(final String id, final Scheduler scheduler) {
     this.scheduler = scheduler;
-    this.state = state;
-    this.settings = settings;
+    this.state = new WritableProperties(id, Paths.get(String.format("state/%s.properties", id)));
+    this.settings = new WritableProperties(id, Paths.get(String.format("settings/%s.properties", id)));
+
+    this.state.load();
+    this.settings.load();
   }
 
   public WritableProperties getState() {

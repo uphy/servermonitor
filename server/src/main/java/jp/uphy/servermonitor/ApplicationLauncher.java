@@ -13,6 +13,8 @@
 package jp.uphy.servermonitor;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -24,9 +26,26 @@ public class ApplicationLauncher {
     final String javaPath = System.getProperty("java.home") + "/bin/java";
     final String classpath = System.getProperty("java.class.path");
     final String restartableProperty = String.format("-D%s=true", Application.RESTARTABLE_KEY);
+    String springloaded = null;
+    for (String s : classpath.split(":")) {
+      if (s.contains("springloaded")) {
+        springloaded = s;
+        break;
+      }
+    }
+    final List<String> cmd = new ArrayList<>();
+    cmd.add(javaPath);
+    if (springloaded != null) {
+      cmd.add("-javaagent:" + springloaded);
+      cmd.add("-noverify");
+    }
+    cmd.add("-cp");
+    cmd.add(classpath);
+    cmd.add(restartableProperty);
+    cmd.add(Application.class.getName());
 
     while (true) {
-      final ProcessBuilder pb = new ProcessBuilder(javaPath, "-cp", classpath, restartableProperty, Application.class.getName());
+      final ProcessBuilder pb = new ProcessBuilder(cmd);
       pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
       pb.redirectError(ProcessBuilder.Redirect.INHERIT);
       final Process p = pb.start();

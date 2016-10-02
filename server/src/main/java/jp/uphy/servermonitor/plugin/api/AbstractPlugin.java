@@ -10,23 +10,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.servermonitor.service.plugin;
-
-import jp.uphy.servermonitor.service.plugin.api.Plugin;
-
+package jp.uphy.servermonitor.plugin.api;
 
 /**
  * @author Yuhi Ishikura
  */
-public class PluginB extends Plugin {
+public abstract class AbstractPlugin implements Plugin {
 
   @Override
-  public String getName() {
-    return "Plugin B";
+  public void initialize(final PluginContext pluginContext) throws PluginException {
+
   }
 
   @Override
-  public String getId() {
-    return "pluginB";
+  public void start(final PluginContext pluginContext) throws PluginException {
+
+  }
+
+  @Override
+  public void stop(final PluginContext value) throws PluginException {
+
   }
 }

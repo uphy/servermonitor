@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.servermonitor.service.plugin.api;
+package jp.uphy.servermonitor.plugin.api;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,30 +25,44 @@ import java.util.function.Consumer;
 public final class Scheduler {
 
   private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
-  private Consumer<ScheduleTaskException> taskExceptionHandler = Throwable::printStackTrace;
+  private Consumer<Throwable> taskExceptionHandler = Throwable::printStackTrace;
 
   public ScheduleTaskHandler scheduleAtFixedRate(ScheduleTask task, long period) {
     final Future<?> f = this.executorService.scheduleAtFixedRate(() -> {
       try {
         task.run();
-      } catch (ScheduleTaskException e) {
+      } catch (Throwable e) {
         taskExceptionHandler.accept(e);
       }
     }, 0, period, TimeUnit.MILLISECONDS);
-    return new ScheduleTaskHandler(f);
+    return () -> f.cancel(true);
   }
 
-  public static class ScheduleTaskHandler {
+  public ScheduleTaskHandler scheduleAtRate(ScheduleTask task, long period) {
+    final Thread t = new Thread(() -> {
+      while (Thread.interrupted() == false) {
+        try {
+          task.run();
+        } catch (Throwable e) {
+          taskExceptionHandler.accept(e);
+          break;
+        }
+        try {
+          Thread.sleep(period);
+        } catch (InterruptedException e) {
+          break;
+        }
+      }
+    });
+    t.start();
+    return () -> {
+      t.interrupt();
+    };
+  }
 
-    private Future<?> task;
+  public interface ScheduleTaskHandler {
 
-    ScheduleTaskHandler(final Future<?> task) {
-      this.task = task;
-    }
-
-    public void stop() {
-      this.task.cancel(true);
-    }
+    void stop();
 
   }
 

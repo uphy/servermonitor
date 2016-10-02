@@ -26,7 +26,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <mainClass>jp.uphy.servermonitor.Application</mainClass>
+                    <mainClass>jp.uphy.servermonitor.ApplicationLauncher</mainClass>
                 </configuration>
             </plugin>
             <plugin>

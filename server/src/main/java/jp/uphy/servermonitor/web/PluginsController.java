@@ -13,6 +13,7 @@
 package jp.uphy.servermonitor.web;
 
 import jp.uphy.servermonitor.service.plugin.PluginManager;
+import jp.uphy.servermonitor.service.plugin.PluginWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,46 +46,46 @@ public class PluginsController {
   private PluginManager pluginManager;
 
   @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public Iterable<PluginManager.PluginWrapper> list() {
+  public Iterable<PluginWrapper> list() {
     return this.pluginManager.getAllPlugins();
   }
 
   @RequestMapping(value = "{pluginId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public PluginManager.PluginWrapper get(@PathVariable String pluginId) {
+  public PluginWrapper get(@PathVariable String pluginId) {
     return getPlugin(pluginId);
   }
 
   @RequestMapping(value = "{pluginId}/restart", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public PluginManager.PluginWrapper restart(@PathVariable String pluginId) {
-    final PluginManager.PluginWrapper plugin = getPlugin(pluginId);
+  public PluginWrapper restart(@PathVariable String pluginId) {
+    final PluginWrapper plugin = getPlugin(pluginId);
     plugin.restart();
     return plugin;
   }
 
   @RequestMapping(value = "{pluginId}/stop", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public PluginManager.PluginWrapper stop(@PathVariable String pluginId) {
-    final PluginManager.PluginWrapper plugin = getPlugin(pluginId);
+  public PluginWrapper stop(@PathVariable String pluginId) {
+    final PluginWrapper plugin = getPlugin(pluginId);
     plugin.stop();
     return plugin;
   }
 
   @RequestMapping(value = "{pluginId}/start", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public PluginManager.PluginWrapper start(@PathVariable String pluginId) {
-    final PluginManager.PluginWrapper plugin = getPlugin(pluginId);
+  public PluginWrapper start(@PathVariable String pluginId) {
+    final PluginWrapper plugin = getPlugin(pluginId);
     plugin.start();
     return plugin;
   }
 
   @RequestMapping(value = "{pluginId}/initialize", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public PluginManager.PluginWrapper initialize(@PathVariable String pluginId) {
-    final PluginManager.PluginWrapper plugin = getPlugin(pluginId);
+  public PluginWrapper initialize(@PathVariable String pluginId) {
+    final PluginWrapper plugin = getPlugin(pluginId);
     plugin.initialize();
     return plugin;
   }
 
   @RequestMapping(value = "{pluginId}/settings", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Properties settings(@PathVariable("pluginId") String pluginId, @RequestParam(required = false) String name, @RequestParam(required = false) String value, @RequestParam(required = false, defaultValue = "false") boolean restart) {
-    final PluginManager.PluginWrapper plugin = getPlugin(pluginId);
+    final PluginWrapper plugin = getPlugin(pluginId);
     if (name != null && value != null) {
       plugin.getPluginContext().getSettings().setProperty(name, value);
     }
@@ -96,7 +97,7 @@ public class PluginsController {
 
   @RequestMapping(value = "{pluginId}/settings", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Properties settingsAll(@PathVariable String pluginId, @RequestBody Map<String, String> settings, @RequestParam(required = false) String value, @RequestParam(required = false, defaultValue = "false") boolean restart) {
-    final PluginManager.PluginWrapper plugin = getPlugin(pluginId);
+    final PluginWrapper plugin = getPlugin(pluginId);
     plugin.getPluginContext().getSettings().clear();
     for (Map.Entry<String, String> entry : settings.entrySet()) {
       plugin.getPluginContext().getSettings().setProperty(entry.getKey(), entry.getValue());
@@ -126,8 +127,8 @@ public class PluginsController {
     }
   }
 
-  private PluginManager.PluginWrapper getPlugin(String id) {
-    PluginManager.PluginWrapper plugin = this.pluginManager.getPlugin(id);
+  private PluginWrapper getPlugin(String id) {
+    PluginWrapper plugin = this.pluginManager.getPlugin(id);
     if (plugin == null) {
       throw new IllegalArgumentException("No such plugin: " + id);
     }

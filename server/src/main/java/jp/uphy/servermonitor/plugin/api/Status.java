@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.servermonitor.service.plugin.api;
+package jp.uphy.servermonitor.plugin.api;
 
 /**
  * @author Yuhi Ishikura

@@ -10,19 +10,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.servermonitor.service.plugin.api;
+package jp.uphy.servermonitor.plugin.api;
 
 /**
  * @author Yuhi Ishikura
  */
-public class ScheduleTaskException extends Exception {
+public interface Plugin {
 
-  public ScheduleTaskException(final String message) {
-    super(message);
-  }
+  String getName();
 
-  public ScheduleTaskException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+  String getId();
+
+  void initialize(PluginContext pluginContext) throws PluginException;
+
+  void start(PluginContext pluginContext) throws PluginException;
+
+  void stop(final PluginContext value) throws PluginException;
 
 }

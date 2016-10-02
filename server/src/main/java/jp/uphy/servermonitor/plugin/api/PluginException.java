@@ -10,27 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.servermonitor.service.plugin.api;
+package jp.uphy.servermonitor.plugin.api;
 
 /**
  * @author Yuhi Ishikura
  */
-public abstract class Plugin {
+public class PluginException extends Exception {
 
-  public abstract String getName();
-
-  public abstract String getId();
-
-  public void initialize(PluginContext pluginContext) {
-
+  public PluginException(final String message) {
+    super(message);
   }
 
-  public void start(PluginContext pluginContext) {
-
+  public PluginException(final String message, final Throwable cause) {
+    super(message, cause);
   }
-
-  public void stop(final PluginContext value) {
-
-  }
-
 }
