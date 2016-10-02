@@ -43,4 +43,9 @@ public class PagesController {
     return "index";
   }
 
+  @RequestMapping("admin")
+  public String plugins() {
+    return "admin";
+  }
+
 }

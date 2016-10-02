@@ -3,3 +3,7 @@
 /target
 /logs
 /db
+/plugins
+/node_modules
+/settings
+/state

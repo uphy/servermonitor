@@ -5,7 +5,7 @@ logging:
     file: logs/servermonitor.log
     level:
         org.springframework.web: INFO
-        jp.uphy.servermonitor: ALL
+        jp.uphy.servermonitor: DEBUG
 spring:
   thymeleaf:
     cache: false
@@ -15,3 +15,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  resources:
+    chain:
+      strategy:
+        content:
+          enabled: true
+          paths: /**
